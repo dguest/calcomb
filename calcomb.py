@@ -8,7 +8,6 @@ from argparse import ArgumentParser
 from urllib.request import Request, urlopen
 from sys import stdout
 import re
-from dataclasses import dataclass, field
 
 def get_args():
     parser = ArgumentParser(description=__doc__)
@@ -18,11 +17,14 @@ def get_args():
 
 key_regex = re.compile('(SUMMARY|URL|DESCRIPTION):.+')
 
-@dataclass
 class Event:
-    keyed: dict = field(default_factory=dict)
-    event: list = field(default_factory=list)
-    active: bool = False
+    keyed: dict
+    event: list
+    active: bool
+    def __init__(self):
+        self.keyed = {}
+        self.event = []
+        self.active = False
 
 
 def event_iter(file_like):
