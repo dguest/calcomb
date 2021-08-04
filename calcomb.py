@@ -35,22 +35,30 @@ def event_iter(file_like):
             if event.active:
                 raise Exception('found event in event')
             event.active = True
-        if line == 'END:VEVENT':
-            yield event.keyed, '\n'.join(event.event + [''])
-            event = Event()
         if event.active:
             if key_regex.match(line):
                 key, val = line.split(':',1)
                 event.keyed[key] = val
             event.event += [line]
+        if line == 'END:VEVENT':
+            yield event.keyed, '\r\n'.join(event.event + [''])
+            event = Event()
 
 def run():
     args = get_args()
+    stdout.write(
+        'BEGIN:VCALENDAR\r\n'
+        'VERSION:2.0\r\n'
+        'PRODID:-//CERN//INDICO//EN\r\n'
+    )
     for url in args.urls:
         req = Request(url)
         for edict, event in event_iter(urlopen(req)):
             if any(m in edict['SUMMARY'] for m in args.matches):
                 stdout.write(event)
+    stdout.write(
+        'END:VCALENDAR\r\n'
+    )
 
 if __name__ == '__main__':
     run()
