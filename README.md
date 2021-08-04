@@ -23,7 +23,9 @@ calcomb.py <url to events.ics file> [more urls...] -m <match 1> [match...]
 Where it's very important that you include the URL with your
 `user_token=*` at the end. **Hint:** you can get the full url with the
 token by clicking the little calendar dohikcy on the upper right side
-of the indico category
+of the indico category. The `match` field just matches the event
+summary, i.e. something like `comb` will match "SUSY + exotics global
+combination meeting", "thedotcombubble" etc.
 
 You can combine as many URLs as you like, and then run as a cron job
 that dumps everything to another public URL. Then you can unsubscribe
