@@ -19,7 +19,7 @@ def get_args():
     return parser.parse_args()
 
 key_regex = re.compile('(SUMMARY|URL|DESCRIPTION):.+')
-zoom_password_regex = re.compile('([&?]pwd=)[A-Za-z0-9]+')
+password_regex = re.compile('([&?]pwd=)[A-Za-z0-9]+')
 
 class Event:
     keyed: dict
@@ -35,7 +35,7 @@ def wrap_lines(lines, clean):
     wrapped = []
     for line in lines:
         if clean:
-            line = zoom_password_regex.sub(r'\1[REDACTED]', line)
+            line = password_regex.sub(r' [ZOOM PASSWORD REDACTED] ', line)
         wrapped += wrap(
             line,
             width=75,
