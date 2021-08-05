@@ -30,7 +30,7 @@ class Event:
 def event_iter(file_like):
     event = Event()
     for raw in file_like:
-        line = raw.decode('utf-8').strip()
+        line = raw.decode('utf-8').rstrip()
         if line == 'BEGIN:VEVENT':
             if event.active:
                 raise Exception('found event in event')
