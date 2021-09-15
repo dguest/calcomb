@@ -30,3 +30,27 @@ combination meeting", "thedotcombubble" etc.
 You can combine as many URLs as you like, and then run as a cron job
 that dumps everything to another public URL. Then you can unsubscribe
 from those reminder emails and get some real work done.
+
+### Private Key Mode ###
+
+You can also use [Indico's export API][export-api] to avoid creating a
+special token for each event and embedding that token in the call. The
+syntax is
+
+```
+calcomb.py <catigory id> [more ids] -k -m <match 1> [match...]
+```
+
+Note that you'll need a local file called `~/.indico-secret-key` which
+should contain [your indico credentials][cred]. It have the format
+
+```
+XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY
+```
+
+where first line is the token, second is the "secret".
+
+
+[export-api]: https://indico.readthedocs.io/en/v1.9/http_api/
+[cred]: https://indico.cern.ch/user/api/
