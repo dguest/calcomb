@@ -74,7 +74,8 @@ def append_signature(url, key_file='~/.indico-secret-key'):
     api_key, secret_key = lines.split()
     items = sorted([
         ('timestamp', str(int(time.time()))),
-        ('ak', api_key)
+        ('ak', api_key),
+        ('from', '-30d00h00m'),
     ])
     encoded = urlencode(items)
     url_root, *rest = url.rsplit('/',3)
@@ -93,6 +94,8 @@ def run():
     )
     for url in args.urls:
         if args.use_secret_key:
+            if not url.startswith('https:'):
+                url = f'https://indico.cern.ch/export/categ/{url}.ics'
             url = append_signature(url)
         req = Request(url)
         for edict, event in event_iter(urlopen(req), clean=(not args.raw)):
