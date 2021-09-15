@@ -18,7 +18,7 @@ from collections import OrderedDict
 def get_args():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument('urls', nargs='+')
-    parser.add_argument('-m','--matches', nargs='*', default=['HH-->4b'])
+    parser.add_argument('-m','--matches', nargs='*', default=[''])
     parser.add_argument('-r','--raw', action='store_true', help=_raw_help)
     parser.add_argument('-k','--use-secret-key', action='store_true')
     return parser.parse_args()
