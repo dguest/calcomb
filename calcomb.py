@@ -5,12 +5,15 @@ Make a more reasonable ics file from an unreasonable one
 """
 _raw_help = "Don't clean zoom links"
 
+_advertisement='Indexed by calcomb: https://github.com/dguest/calcomb'
+
 from argparse import ArgumentParser
 from urllib.request import Request, urlopen
 from urllib.parse import urlencode, quote
 from sys import stdout
 import re, os, time, hmac, hashlib
 from textwrap import wrap
+from collections import OrderedDict
 
 def get_args():
     parser = ArgumentParser(description=__doc__)
@@ -25,11 +28,9 @@ password_regex = re.compile('([&?]pwd=)[A-Za-z0-9]+')
 
 class Event:
     keyed: dict
-    event: list
     active: bool
     def __init__(self):
-        self.keyed = {}
-        self.event = []
+        self.keyed = OrderedDict()
         self.active = False
         self.last_key = None
 
@@ -47,7 +48,7 @@ def wrap_lines(lines, clean):
         )
     return '\r\n'.join(wrapped + [''])
 
-def event_iter(file_like, clean=True):
+def event_iter(file_like):
     event = Event()
     for raw in file_like:
         line = raw.decode('utf-8').rstrip('\r\n')
@@ -60,14 +61,12 @@ def event_iter(file_like, clean=True):
                 key, val = line.split(':',1)
                 event.keyed[key] = val
                 event.last_key = key
-                event.event += [line]
             elif line.startswith(' '):
-                event.event[-1] += line[1:]
                 event.keyed[event.last_key] += line[1:]
             else:
                 raise Exception(f"what is '{line}'?")
         if line == 'END:VEVENT':
-            yield event.keyed, wrap_lines(event.event, clean=clean)
+            yield event.keyed
             event = Event()
 
 def append_signature(url, key_file='~/.indico-secret-key'):
@@ -99,8 +98,11 @@ def run():
                 url = f'https://indico.cern.ch/export/categ/{url}.ics'
             url = append_signature(url)
         req = Request(url)
-        for edict, event in event_iter(urlopen(req), clean=(not args.raw)):
+        for edict in event_iter(urlopen(req)):
             if any(m in edict['SUMMARY'] for m in args.matches):
+                edict['DESCRIPTION'] += r'\n' + _advertisement
+                listified = [f'{x}:{y}' for x, y in edict.items()]
+                event = wrap_lines(listified, clean=(not args.raw))
                 stdout.write(event)
     stdout.write(
         'END:VCALENDAR\r\n'
