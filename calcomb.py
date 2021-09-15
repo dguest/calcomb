@@ -72,13 +72,17 @@ def event_iter(file_like, clean=True):
 def append_signature(url, key_file='~/.indico-secret-key'):
     lines = open(os.path.expanduser(key_file),'rb').read()
     api_key, secret_key = lines.split()
-    items = {'timestamp': str(int(time.time()))}
+    items = sorted([
+        ('timestamp', str(int(time.time()))),
+        ('ak', api_key)
+    ])
     encoded = urlencode(items)
-    url = f'{url}?{encoded}'.encode('utf8')
-    print(url, secret_key)
-    items['signature'] = hmac.new(secret_key, url, hashlib.sha1).hexdigest()
-    encoded = urlencode(items)
-    return f'{url}?{encoded}'
+    url_root, *rest = url.rsplit('/',3)
+    url_rest = '/'.join(rest)
+    to_hash = f'/{url_rest}?{encoded}'
+    items.append(('signature',hmac.new(
+        secret_key, to_hash.encode('utf8'), hashlib.sha1).hexdigest()))
+    return f'{url_root}/{url_rest}?' + urlencode(items)
 
 def run():
     args = get_args()
