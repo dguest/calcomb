@@ -20,7 +20,7 @@ def get_args():
     parser.add_argument('-k','--use-secret-key', action='store_true')
     return parser.parse_args()
 
-key_regex = re.compile('(SUMMARY|URL|DESCRIPTION):.+')
+key_regex = re.compile('^([-A-Z;=])+:.+')
 password_regex = re.compile('([&?]pwd=)[A-Za-z0-9]+')
 
 class Event:
@@ -56,15 +56,16 @@ def event_iter(file_like, clean=True):
                 raise Exception('found event in event')
             event.active = True
         if event.active:
-            if line.startswith(' '):
-                event.event[-1] += line[1:]
-                event.keyed[event.last_key] += line[1:]
-            else:
-                event.event += [line]
             if key_regex.match(line):
                 key, val = line.split(':',1)
                 event.keyed[key] = val
                 event.last_key = key
+                event.event += [line]
+            elif line.startswith(' '):
+                event.event[-1] += line[1:]
+                event.keyed[event.last_key] += line[1:]
+            else:
+                raise Exception(f"what is '{line}'?")
         if line == 'END:VEVENT':
             yield event.keyed, wrap_lines(event.event, clean=clean)
             event = Event()
