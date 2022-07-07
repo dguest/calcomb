@@ -4,8 +4,8 @@
 Make a more reasonable ics file from an unreasonable one
 """
 _raw_help = "Don't clean zoom links"
-
 _advertisement='Indexed by calcomb: https://github.com/dguest/calcomb'
+_def_veto = ['Cancelled','Postponed']
 
 from argparse import ArgumentParser
 from urllib.request import Request, urlopen
@@ -21,6 +21,8 @@ def get_args():
     parser.add_argument('-m','--matches', nargs='*', default=[''])
     parser.add_argument('-r','--raw', action='store_true', help=_raw_help)
     parser.add_argument('-k','--use-secret-key', action='store_true')
+    parser.add_argument('-v','--veto', nargs='*', default=_def_veto,
+                        help='default: %(default)s')
     return parser.parse_args()
 
 key_regex = re.compile('^([-A-Z;=])+:.+')
@@ -87,6 +89,14 @@ def append_signature(url, key_file='~/.indico-secret-key'):
 
 def run():
     args = get_args()
+
+    def matcher(edict):
+        if not any(m in edict['SUMMARY'] for m in args.matches):
+            return False
+        if any(v in edict['SUMMARY'] for v in args.veto):
+            return False
+        return True
+
     stdout.write(
         'BEGIN:VCALENDAR\r\n'
         'VERSION:2.0\r\n'
@@ -99,7 +109,7 @@ def run():
             url = append_signature(url)
         req = Request(url)
         for edict in event_iter(urlopen(req)):
-            if any(m in edict['SUMMARY'] for m in args.matches):
+            if matcher(edict):
                 edict['DESCRIPTION'] += r'\n' + _advertisement
                 listified = [f'{x}:{y}' for x, y in edict.items()]
                 event = wrap_lines(listified, clean=(not args.raw))
